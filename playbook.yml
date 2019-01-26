@@ -10,10 +10,6 @@
         path: /data/brick1
         state: directory
 
-    - name: ...
-      become: yes
-      shell: "yum install python2-dnf -y"
-
     - name: Install the glusterfs server
       become: yes
       package:
@@ -21,5 +17,25 @@
         state: latest
       with_items:
         - glusterfs-server
+
+    - name: Start glusterfs service
+      become: yes
+      service:
+        name: glusterd
+        state: started
+
+        #- name: Install Ansible Python 2 Dependencies
+        # become: yes
+        # dnf:
+        # name: python-firewall
+        #state: latest
+
+        #- name: Ensure firewall for each instance is opened
+        #become: yes
+        #firewalld:
+        #zone: trusted
+        #state: enabled
+        #source: hostvars[item]["ansible_eth1"]["ipv4"]["address"]
+        #with_items: groups['gluster']
 ...
 
