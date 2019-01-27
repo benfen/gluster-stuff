@@ -1,13 +1,11 @@
 ---
 - hosts: gluster
-  vars_files:
-    - vars.yml
 
   tasks:
     - name: Create mount point for gluster
       become: yes
       file:
-        path: /data/brick1
+        path: /data/brick
         state: directory
 
     - name: Install the glusterfs server
@@ -24,18 +22,21 @@
         name: glusterd
         state: started
 
-        #- name: Install Ansible Python 2 Dependencies
-        # become: yes
-        # dnf:
-        # name: python-firewall
-        #state: latest
+    - name: Ensure firewall for each instance is opened
+      become: yes
+      firewalld:
+        zone: trusted
+        state: enabled
+        source: "{{ item }}"
+      with_items: "{{ cluster_ips }}"
 
-        #- name: Ensure firewall for each instance is opened
-        #become: yes
-        #firewalld:
-        #zone: trusted
-        #state: enabled
-        #source: hostvars[item]["ansible_eth1"]["ipv4"]["address"]
-        #with_items: groups['gluster']
+    - name: Create gluster volume
+      become: yes
+      gluster_volume:
+        name: test_vol
+        state: present
+        bricks: /data/brick
+        cluster: "{{ cluster_ips }}"
+      run_once: true
 ...
 

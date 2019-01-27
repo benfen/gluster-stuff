@@ -2,8 +2,8 @@
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "fedora/27-cloud-base"
-  config.vm.box_version = "20171105"
+  config.vm.box = "roboxes/fedora28"
+  #config.vm.box_version = "2017115"
 
   boxes = [
 	  { :name => "g0", :ip => "192.168.1.2" },
@@ -20,9 +20,14 @@ Vagrant.configure("2") do |config|
 	node.vm.provision "ansible" do |ansible|
 	  ansible.playbook = "playbook.yml"
 	  ansible.groups = {
-            "gluster" => ["g0", "g1", "g2"]
+            "gluster" => boxes.map{ |box| box[:name] }
+	  }
+	  ansible.extra_vars = {
+            "cluster_ips" => boxes.map{ |box| box[:ip] },
+	    "ansible_python_interpreter" => "/usr/bin/python3"
 	  }
 	  ansible.limit = "all"
+	  ansible.compatibility_mode = "2.0"
         end
       end
     end
