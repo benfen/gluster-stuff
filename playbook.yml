@@ -42,8 +42,6 @@
         name: "{{ gluster_volume }}"
         force: yes
         state: present
-        rebalance: yes
-        replicas: 3
         bricks: "{{ gluster_brick }}"
         cluster: "{{ cluster_ips }}"
       run_once: true
