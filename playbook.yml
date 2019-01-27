@@ -5,7 +5,7 @@
     - name: Create mount point for gluster
       become: yes
       file:
-        path: /data/brick
+        path: "{{ gluster_brick }}"
         state: directory
 
     - name: Install the glusterfs server
@@ -28,14 +28,23 @@
         zone: trusted
         state: enabled
         source: "{{ item }}"
+        immediate: yes
+        permanent: yes
       with_items: "{{ cluster_ips }}"
+
+    - name: Force the firewall to reload to clean up after Ansible
+      become: yes
+      shell: "firewall-cmd --reload"
 
     - name: Create gluster volume
       become: yes
       gluster_volume:
-        name: test_vol
+        name: "{{ gluster_volume }}"
+        force: yes
         state: present
-        bricks: /data/brick
+        rebalance: yes
+        replicas: 3
+        bricks: "{{ gluster_brick }}"
         cluster: "{{ cluster_ips }}"
       run_once: true
 ...
