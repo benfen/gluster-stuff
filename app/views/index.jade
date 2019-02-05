@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  h1= path
+
+  form(action="/" method="post" enctype="multipart/form-data")
+    label(for="file") Select a file to upload
+    input(type="file" name="file")
+    button(action="submit") Upload
+
+  ul
+  each file in files
+    li= file
