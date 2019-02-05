@@ -5,8 +5,8 @@ Vagrant.configure("2") do |config|
   config.vm.box = "roboxes/fedora28"
 
   machines = [
-	  { :name => "g0", :ip => "192.168.1.2" },
-	  { :name => "g1", :ip => "192.168.1.3" },
+    { :name => "g0", :ip => "192.168.1.2" },
+    { :name => "g1", :ip => "192.168.1.3" },
     { :name => "g2", :ip => "192.168.1.4" },
     { :name => "ghost", :ip => "192.168.1.5" }
   ]
@@ -24,12 +24,12 @@ Vagrant.configure("2") do |config|
 
       if box[:name] == "ghost"
         node.vm.provision "ansible", run: "always" do |ansible|
-	        ansible.playbook = "playbook.yml"
+          ansible.playbook = "playbook.yml"
 
-	        ansible.groups = {
+          ansible.groups = {
             "client" => machines[-1][:name],
             "gluster" => boxes.map{ |box| box[:name] }
-	        }
+          }
 
           ansible.extra_vars = {
             "ansible_python_interpreter" => "/usr/bin/python3",
