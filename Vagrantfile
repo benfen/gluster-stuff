@@ -4,35 +4,37 @@ Vagrant.configure("2") do |config|
 
   config.vm.box = "roboxes/fedora28"
 
-  boxes = [
+  machines = [
 	  { :name => "g0", :ip => "192.168.1.2" },
 	  { :name => "g1", :ip => "192.168.1.3" },
-	  { :name => "g2", :ip => "192.168.1.4" }
+    { :name => "g2", :ip => "192.168.1.4" },
+    { :name => "ghost", :ip => "192.168.1.5" }
   ]
 
-  client = { :name => "ghost", :ip => "192.168.1.5" }
+  boxes = machines.slice(0, 3) 
 
-  boxes.each do |box|
+  machines.each do |box|
     config.vm.define box[:name] do |node|
       node.vm.hostname =  box[:name]
       node.vm.network :private_network, ip: box[:ip]
 
-      if box[:name] == "g2"
+      if box[:name] == "ghost"
+        config.vm.network "forwarded_port", guest: 80, host: 80
+      end
+
+      if box[:name] == "ghost"
         node.vm.provision "ansible", run: "always" do |ansible|
 	        ansible.playbook = "playbook.yml"
 
 	        ansible.groups = {
-            "client" => client[:name],
+            "client" => machines[-1][:name],
             "gluster" => boxes.map{ |box| box[:name] }
 	        }
 
-          machine_ips = boxes.map{ |box| box[:ip] }
-          machine_ips.push(client[:ip])
-
           ansible.extra_vars = {
             "ansible_python_interpreter" => "/usr/bin/python3",
-            "cluster_ips" => machine_ips.slice(0, 3),
-            "machine_ips" => machine_ips,
+            "cluster_ips" => boxes.map{ |box| box[:ip] },
+            "machine_ips" => machines.map{ |machine| machine[:ip] },
             "gluster_brick" => "/data/brick",
             "gluster_volume" => "test_vol",
             "gluster_client_mount" => "/mnt/glusterfs"
@@ -42,11 +44,6 @@ Vagrant.configure("2") do |config|
           ansible.compatibility_mode = "2.0"
         end
       end
-    end
-
-    config.vm.define client[:name] do |node|
-      node.vm.hostname = client[:name]
-      node.vm.network :private_network, ip: client[:ip]
     end
   end
 
