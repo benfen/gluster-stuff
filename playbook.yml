@@ -32,6 +32,8 @@
         permanent: yes
       with_items: "{{ machine_ips }}"
 
+    # Ansible apparently doesn't apply immediate, permanant changes to zones immediately.
+    # Reloading the firewall is a quick and dirty way to make it work.
     - name: Force the firewall to reload to clean up after Ansible
       become: yes
       shell: "firewall-cmd --reload"
@@ -54,12 +56,7 @@
       package:
         name: "{{ item }}"
         state: latest
-      with_items: # TODO: Remove unneeded dependencies
-        - openssh-server
-        - wget
-        - fuse
-        - fuse-libs
-        - libibverbs
+      with_items:
         - glusterfs
         - glusterfs-fuse
 
@@ -74,6 +71,7 @@
       mount:
         name: "{{ gluster_client_mount }}"
         fstype: glusterfs
+        # The ip used here doesn't matter - it just needs to be one of the file servers
         src: "{{ cluster_ips[0] }}:/{{ gluster_volume }}"
         state: mounted
 ...
