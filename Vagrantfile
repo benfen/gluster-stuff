@@ -10,30 +10,43 @@ Vagrant.configure("2") do |config|
 	  { :name => "g2", :ip => "192.168.1.4" }
   ]
 
+  client = { :name => "ghost", :ip => "192.168.1.5" }
+
   boxes.each do |box|
     config.vm.define box[:name] do |node|
       node.vm.hostname =  box[:name]
       node.vm.network :private_network, ip: box[:ip]
 
       if box[:name] == "g2"
-        node.vm.provision "ansible" do |ansible|
+        node.vm.provision "ansible", run: "always" do |ansible|
 	        ansible.playbook = "playbook.yml"
 
 	        ansible.groups = {
+            "client" => client[:name],
             "gluster" => boxes.map{ |box| box[:name] }
 	        }
 
+          machine_ips = boxes.map{ |box| box[:ip] }
+          machine_ips.push(client[:ip])
+
           ansible.extra_vars = {
             "ansible_python_interpreter" => "/usr/bin/python3",
-            "cluster_ips" => boxes.map{ |box| box[:ip] },
+            "cluster_ips" => machine_ips.slice(0, 3),
+            "machine_ips" => machine_ips,
             "gluster_brick" => "/data/brick",
-            "gluster_volume" => "test_vol"
+            "gluster_volume" => "test_vol",
+            "gluster_client_mount" => "/mnt/glusterfs"
           }
 
           ansible.limit = "all"
           ansible.compatibility_mode = "2.0"
         end
       end
+    end
+
+    config.vm.define client[:name] do |node|
+      node.vm.hostname = client[:name]
+      node.vm.network :private_network, ip: client[:ip]
     end
   end
 

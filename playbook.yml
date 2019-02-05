@@ -30,7 +30,7 @@
         source: "{{ item }}"
         immediate: yes
         permanent: yes
-      with_items: "{{ cluster_ips }}"
+      with_items: "{{ machine_ips }}"
 
     - name: Force the firewall to reload to clean up after Ansible
       become: yes
@@ -45,5 +45,36 @@
         bricks: "{{ gluster_brick }}"
         cluster: "{{ cluster_ips }}"
       run_once: true
+
+- hosts: client
+
+  tasks:
+    - name: Install gluster client dependencies
+      become: yes
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items: # TODO: Remove unneeded dependencies
+        - openssh-server
+        - wget
+        - fuse
+        - fuse-libs
+        - libibverbs
+        - glusterfs
+        - glusterfs-fuse
+
+    - name: Ensure gluster mount point exists
+      become: yes
+      file:
+        path: "{{ gluster_client_mount }}"
+        state: directory
+
+    - name: Mount gluster filesystem
+      become: yes
+      mount:
+        name: "{{ gluster_client_mount }}"
+        fstype: glusterfs
+        src: "{{ cluster_ips[0] }}:/{{ gluster_volume }}"
+        state: mounted
 ...
 
