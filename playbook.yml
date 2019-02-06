@@ -59,6 +59,7 @@
       with_items:
         - glusterfs
         - glusterfs-fuse
+        - nodejs
 
     - name: Ensure gluster mount point exists
       become: yes
@@ -74,5 +75,33 @@
         # The ip used here doesn't matter - it just needs to be one of the file servers
         src: "{{ cluster_ips[0] }}:/{{ gluster_volume }}"
         state: mounted
+
+    - name: Synchronize app on the VM
+      become: yes
+      synchronize:
+        src: app
+        dest: /opt
+
+    - name: Load service file for gluster app
+      become: yes
+      copy:
+        src: glust-app.service
+        dest: /etc/systemd/system
+
+    - name: Configure firewall for gluster app
+      become: yes
+      firewalld:
+        port: 3000/tcp
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+    - name: Ensure gluster app is running
+      become: yes
+      systemd:
+        daemon_reload: yes
+        enabled: yes
+        state: restarted
+        name: glust-app
 ...
 

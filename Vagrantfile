@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
 
       # Expose the client's port on the host
       if box[:name] == "ghost"
-        config.vm.network "forwarded_port", guest: 80, host: 80
+        config.vm.network "forwarded_port", guest: 3000, host: 8080
       end
 
       # Run Ansible provisioning.  Since Ansible can target all hosts, only do this once
