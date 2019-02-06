@@ -20,11 +20,12 @@ var upload = multer({ storage: storage })
 router.get('/', (req, res, next) => {
 
   const dir = path.resolve('.');
+  const baseDir = process.env.READ_DIR || '.';
 
-  fs.readdir(process.env.READ_DIR || '.', (err, files) => {
+  fs.readdir(baseDir, (err, files) => {
 
     const filesDetails = files.map(file => {
-      const stats = fs.statSync(file);
+      const stats = fs.statSync(`${baseDir}/${file}`);
 
       return {
         name: file,

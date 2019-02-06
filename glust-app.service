@@ -1,0 +1,9 @@
+[Unit]
+Description = making network connection up
+After = network.target
+
+[Service]
+ExecStart = /opt/app/start.sh
+
+[Install]
+WantedBy = network-online.target
